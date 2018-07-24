@@ -16,4 +16,4 @@ var clinicSchema = new mongoose.Schema({
 });
 
 
-mongoose.model('Clinic', clinicSchema, 'clinicsClean');
+mongoose.model('Clinic', clinicSchema, 'clinics');

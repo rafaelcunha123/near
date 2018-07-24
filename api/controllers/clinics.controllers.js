@@ -1,5 +1,7 @@
 var mongoose = require('mongoose');
 var Clinic = mongoose.model('Clinic');
+var tableify = require('tableify')
+var R = require('ramda')
 
 var runGeoQuery = function(req, res) {
 	var lng = parseFloat(req.query.lng);
@@ -30,13 +32,31 @@ var runGeoQuery = function(req, res) {
 					rua: responseObj.clinicRegister.logradouro,
 					numero: responseObj.clinicRegister.numero,
 					bairro: responseObj.clinicRegister.bairro,
-					coordinates: responseObj.coordinates
+					coordinates: responseObj.coordinates,
+					tipoEstabelecimento: responseObj.clinicRegister.tipoEstabelecimento,
+					especialidades: Object.keys(responseObj.clinicProfessionals).reduce(function(total, current){
+						return  responseObj.clinicProfessionals[current]['CBO']+ ", "  + total 
+					},"")
 				});
 			});
 
+
+
 			res
 				.status(200)
-				.json(response);
+				.send(tableify(R.pipe(
+				R.map(res => {
+					return {
+						Distancia:  Math.round(res.dis),
+						Estabelecimento: res.estabelecimento.toLowerCase(),
+						Rua: res.rua.toLowerCase(),
+						Numero: res.numero,
+						Bairro: res.bairro.toLowerCase(),
+						tipoEstabelecimento: res.tipoEstabelecimento.toLowerCase(),
+						Especialidades: res.especialidades.toLowerCase()
+					}
+				})
+			)(response)));
 		});
 };
 
@@ -63,9 +83,9 @@ module.exports.clinicsGetAll = function(req, res) {
 		.find()
 		.skip(offset)
 		.limit(count)
-		.exec(function(err, hotels) {
-			console.log('Found hotels', hotels.length);
-			res.json(hotels);
+		.exec(function(err, clinics) {
+			console.log('Found clinics', clinics.length);
+			res.json(clinics);
 		});
 };
 
